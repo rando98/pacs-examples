@@ -1,0 +1,40 @@
+EXERCISE 1:
+
+#SOLUTION 1:
+#Step1: Generate object file Utilities.o from Utilities.cpp
+g++ -fPIC -c -I../include/ -I${mkEigenInc} Utilities.cpp -c
+
+#Step2: generate shared library liblinearalgebra.so strating from Utilities.o
+g++ -shared -Wl,-soname,liblinearalgebra.so Utilities.o -o liblinearalgebra.so
+#oppure
+g++ --shared Utilities.o -o liblinearalgebra.so 
+
+#Step3: generate test.o from test.cpp
+g++ -c  -I../include -I${mkEigenInc} -I${mkSuitesparseInc} test.cpp
+
+#Step4: link linearalgebra.so and test.o to generate the executable "test"
+g++ -L${mkSuitesparseLib} -lumfpack -L./ -llinearalgebra test.o -o test
+export LD_LIBRARY_PATH+=:${PWD}
+#oppure:
+g++ -L${mkSuitesparseLib} -lumfpack -L./ -llinearalgebra -Wl,-rpath,./ test.o -o test
+
+=====================================================================================
+
+#SOLUTION 2 (Simpler version, without creating shared library):
+#Step1 (compilation): Generate object file Utilities.o from Utilities.cpp
+g++ -c -I../include/ -I${mkEigenInc} Utilities.cpp
+
+#Step2 (compilation): generate test.o from test.cpp
+g++ -c -I${mkEigenInc} -I${mkSuitesparseInc} -I../include/ test.cpp
+
+#Step3 (linking): link Utilities.o and test.o to generate the executable "test"
+g++ -L${mkSuitesparseLib} -lumfpack Utilities.o test.o -o main
+
+=======================================================================================
+
+What are the differences beetween the two versions?
+If we modify Utilities.cpp, in the first solution we only have to replace linearalgebra.so with the new .so generated with the updated 
+utilities.cpp, WITHOUT RECOMPILING ANYTHING!
+In the second solution instead, we have to redo Step1 and Step3. (OBS: Operative systems when update use shared library as in the first solution, 
+to avoid to recompilng ALL THE APPLICATION ON THE COMPUTER that uses that library). 
+So, at the end, the first solution is better.
