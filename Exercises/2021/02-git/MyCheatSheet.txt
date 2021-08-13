@@ -1,0 +1,56 @@
+Interesting site: https://ndpsoftware.com/git-cheatsheet.html#loc=workspace
+
+Famous commands: git pull, git push, git status
+
+Commands that I can forget: ("codice del commit" is also indicated as "commit hash")
+- git diff (shows the difference beetween workspace and index areas)
+  git diff --cached (show the difference beetween index and last commit in local repo) 
+- git show <codice del commit> (show the difference beetween the indicated commit and the previous commit wrt the indicated commit)
+- git log (all the commits done in local repo): Il codice con lettere e numeri lunghissimo is the "commit_hash" ("codice del commit")
+- git add <file> (Al posto di file posso indicare anche una directory.
+
+- What if I want to go back to a past commit? We have to use git reset. But we have three different ways:
+	a) git reset --soft <codice del commit> (bastano le prime 5 o 6 cifre per il codice del commit)				
+	   Riporta tutti i file come erano per il commit identificato col codice indicato, 
+	   e tutte le modifiche dal commit indicato fino all'ultimo commit fatto (HEAD) Vengono messe nell'index. 
+           This is very useful for instance, if I have to change a little bit the file of the last commit, not doing a new commit!
+	b) git reset --mixed <codice del commit>
+	   Funziona come --soft ma le modifiche fatte dopo il commit indicato vengono messe nell'workspace anziche' nell'index. 
+	   (Quindi alla fine --mixed e --soft sono molto simili)
+	c) git reset --hard <codice del commit>
+	   CANCELLA TUTTO QUELLO CHE VIENE DOPO IL COMMIT INDICATO (TUTTE LE MODIFICHE DOPO IL COMMIT INDICATO VANNO NEL CESSO!). USARE CON CAUTELA.
+
+- git push <name of the remote repo> <name of the branch> 
+	OSS: name of the BRANCH! In the remote rrepo I am pushing the branch!
+	OSS: name of the remote repo it typically origin
+	OSS: Typically I only push the master branch
+  e.g: git push origin master
+
+	OSS: when I do git push origin master, I AM PUSHING MY LOCAL BRANCH MASTER IN THE ORIGIN (ONLINE) BRANCH MASTER
+
+- git pull <name of the remote repo> <name of the branch> 
+	OSS: when I do (git pull origin master) means that I copy the origin master branch into the local master branch
+
+-git merge <other branch>
+ merge the current branch I am using with "other branch" 
+
+- FAILED MERGE, how to read the file?
+
+<<<<<<< HEAD
+    std::string example{"example_string"};			// This is in MINE main.cpp
+=======								// Separator
+    MyCLass m2;							|
+								| => All this is the main.cpp of my friend
+    std::cout << "New line" << std::endl;			|
+>>>>>>> ad08f3a6636bcbb797cc2626a92bd23c7e810bc2		// Commit_hash of my friend
+
+- git clean (as git restore)
+	Remove all the files not tracked by git
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+HINT to use git effectively:
+
+1) Write effective commit messages! (e.g. git commit -m "fix", git commit -m "edit", are not effective)
+2) Do very small commits (small modification to the files and immidiately commit). Large file modifications commits are not useful
+3) Pay attention to the following commands: git reser --hard, git clean, git resore. If you wrongly use them, you cannot recover deleted files.
