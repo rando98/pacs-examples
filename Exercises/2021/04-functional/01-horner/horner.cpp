@@ -1,4 +1,5 @@
 #include "horner.hpp"
+#include <algorithm>
 
 #include <cmath>
 
@@ -22,7 +23,6 @@ eval_horner(const std::vector<double> &a, const double &x)
 
   return result;
 
-
 }
 
 std::vector<double>
@@ -32,8 +32,13 @@ evaluate_poly(const std::vector<double> &points,
 {
   std::vector<double> results(points.size());
 
-  for (std::size_t i = 0; i < points.size(); ++i)
-    results[i] = method(a, points[i]);
+  // for (std::size_t i = 0; i < points.size(); ++i)
+  //  results[i] = method(a, points[i]);
+
+  std::transform(points.cbegin(), points.cend(),
+                results.begin(),
+                [&method, &a](double point) {return method(a, point);}
+              );
 
   return results;
 
