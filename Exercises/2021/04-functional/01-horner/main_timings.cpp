@@ -50,7 +50,7 @@ main(int argc, char **argv)
   std::cout << "Computing " << n_points << " evaluation of polynomial"
             << " with standard formula" << std::endl;
   timer.start();
-  evaluate_poly(points, coeff, &eval);
+  evaluate_poly(points, coeff, "Standard");
   std::cout << std::endl;
   timer.stop();
   std::cout << timer << std::endl;
@@ -58,7 +58,7 @@ main(int argc, char **argv)
   std::cout << "Computing " << n_points << " evaluation of the polynomial with"
             << " Horner's rule" << std::endl;
   timer.start();
-  evaluate_poly(points, coeff, &eval_horner);
+  evaluate_poly(points, coeff, "Horner");
   std::cout << std::endl;
   timer.stop();
   std::cout << timer << std::endl;
