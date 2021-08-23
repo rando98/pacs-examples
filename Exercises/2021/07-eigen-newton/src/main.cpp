@@ -34,7 +34,9 @@ main(int argc, char **argv)
 
   // jac_full.solve(x,b)
 
-  auto jac = make_jacobian(JacobianType::Discrete, system, h);
+  auto jac = make_jacobian<JacobianType::Discrete>(system, h);
+
+  auto jac2 = make_jacobian<JacobianType::Full>(jacobian_fun);
 
   return 0;
 }
