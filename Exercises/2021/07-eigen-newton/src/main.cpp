@@ -1,4 +1,5 @@
 #include "NewtonTraits.hpp"
+#include "JacobianFactory.hpp"
 
 int
 main(int argc, char **argv)
@@ -25,6 +26,15 @@ main(int argc, char **argv)
 
     return J;
   };
+
+  FullJacobian jac_full(jacobian_fun);
+
+  const double h = 0.1;
+  DiscreteJacobian jac_discrete(system, h);
+
+  // jac_full.solve(x,b)
+
+  auto jac = make_jacobian(JacobianType::Discrete, system, h);
 
   return 0;
 }
