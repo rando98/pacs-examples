@@ -1,0 +1,49 @@
+A is stored as a std::vector<std::map<unsigned int, double>>
+A[0]: row 0, which is a std::map<col_indexm value stored>
+    (e.g., A[0] will be something like {{0,4}, {1,-1}}
+A[1]: row 1,
+    (e.g., A[1] will be {{0,-1}, {1,4}, {2,-1}}
+...
+
+# We are using std::map inside because is more efficient in random access than other containers, since maps are ordered!
+# The outer container is not so relevan but the std::vector is the most simple we can choose.
+
+How to construct the classes? We have two possibilities:
+
+1)
+class sparse_matrix
+{
+public: ...
+	double&
+	operator()(unsigned int row_idx, usigned int col_idx)
+		{
+			return matrix[row_idx].at(col_idx);
+		}
+
+	void
+	clear()
+	{
+		matrix.reset();
+	}
+private:
+	std::vector<std::map<unsigned int, double>> matrix;    
+
+}
+
+2)
+class sparse_matrix: public std::vector<std::map<unsigned int, double>>
+{
+public:
+...
+}
+
+# The first case sounds more natural but if I want to do A(0,0)=4 for instance, I have to implement my own operator in the public interface, 
+# which however just exposes the methods already implemented in std::vector and/or std::map.
+
+# However, if I inherit from std::vector<std::map<unsigned int, double>> I am automatically exposing in my public interface all the methods 
+# of std::vector<std::map<unsigned int, double>>. So from outside the class I can easily do, for instance, A.resize(3) or 
+# A[0]=std::map<...>{{0,1}, {1,2}}  without implementing nothing in the public interface of the class!
+
+# However the second class has a major drawback. Usually in C++, inheriting from a container of Standard Library is considered a BAD PRACTICE,
+# and the reason is that STL containers have NON-VIRTUAL DESTRUCTORS, so I CANNOT USE POLYMORPHISM (see slide 4 of this lab). So we will use
+# this solution anyway, but keep in mind that it's not a good practice.

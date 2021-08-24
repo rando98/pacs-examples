@@ -38,6 +38,13 @@ public:
   /// Set all entries to 0 preserving storage structure.
   void
   reset();
+
+  friend std::ostream&
+  operator<<(std::ostream& stream, sparse_matrix& M);
+
+  friend std::vector<double>
+  operator*(const sparse_matrix& M, const std::vector<double>& x);
+
 };
 
 #endif /* SPARSE_MATRIX_HPP */
