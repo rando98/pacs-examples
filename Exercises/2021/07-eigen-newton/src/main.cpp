@@ -1,5 +1,8 @@
+#include <iostream>
+
 #include "NewtonTraits.hpp"
 #include "JacobianFactory.hpp"
+#include "Newton.hpp"
 
 int
 main(int argc, char **argv)
@@ -36,7 +39,19 @@ main(int argc, char **argv)
 
   auto jac = make_jacobian<JacobianType::Discrete>(system, h);
 
-  auto jac2 = make_jacobian<JacobianType::Full>(jacobian_fun);
+   // auto jac2 = make_jacobian<JacobianType::Full>(jacobian_fun);
+
+  // To pass the unique pointer we can either create it when creating the newton object (see Newton newton(...))
+  // or usign std::move (see Newton quasi_newton(...))
+  // (We could also use pass by reference but in this way we cannot bind it on a temporary object!)
+  Newton newton(system, make_jacobian<JacobianType::Full>(jacobian_fun));
+
+  NewtonTraits::VariableType x0(2);
+  auto result = newton.solve(x0);
+
+  std::cout << "Solution: [" << result.solution[0] << "," << result.solution[1] << "]" << std::endl;
+
+  Newton quasi_newton(system, std::move(jac)); // The jac pointer is invalid now.
 
   return 0;
 }
