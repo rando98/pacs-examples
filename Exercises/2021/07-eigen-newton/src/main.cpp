@@ -7,8 +7,10 @@
 int
 main(int argc, char **argv)
 {
-  using VariableType       = NewtonTraits::VariableType;
-  using JacobianMatrixType = NewtonTraits::JacobianMatrixType;
+  constexpr ProblemType Type = ProblemType::Vector;
+
+  using VariableType       = NewtonTraits<Type>::VariableType; // In using I don't have to specify the keyword typename since the compiler will do it for me
+  using JacobianMatrixType = NewtonTraits<Type>::JacobianMatrixType;
 
   auto system = [](const VariableType &x) -> VariableType {
     VariableType y(2);
@@ -30,23 +32,23 @@ main(int argc, char **argv)
     return J;
   };
 
-  FullJacobian jac_full(jacobian_fun);
+  FullJacobian<Type> jac_full(jacobian_fun);
 
   const double h = 0.1;
-  DiscreteJacobian jac_discrete(system, h);
+  DiscreteJacobian<Type> jac_discrete(system, h);
 
   // jac_full.solve(x,b)
 
-  auto jac = make_jacobian<JacobianType::Discrete>(system, h);
+  auto jac = make_jacobian<Type, JacobianType::Discrete>(system, h);
 
    // auto jac2 = make_jacobian<JacobianType::Full>(jacobian_fun);
 
   // To pass the unique pointer we can either create it when creating the newton object (see Newton newton(...))
   // or usign std::move (see Newton quasi_newton(...))
   // (We could also use pass by reference but in this way we cannot bind it on a temporary object!)
-  Newton newton(system, make_jacobian<JacobianType::Full>(jacobian_fun));
+  Newton newton(system, make_jacobian<Type, JacobianType::Full>(jacobian_fun));
 
-  NewtonTraits::VariableType x0(2);
+  VariableType x0(2);
   auto result = newton.solve(x0);
 
   std::cout << "Solution: [" << result.solution[0] << "," << result.solution[1] << "]" << std::endl;

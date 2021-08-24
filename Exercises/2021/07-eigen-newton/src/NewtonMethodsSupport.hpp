@@ -25,11 +25,12 @@ public:
 };
 
 /// Output results.
+template<ProblemType Type>
 class NewtonResult
 {
 public:
   /// Solution.
-  NewtonTraits::VariableType solution;
+  typename NewtonTraits<Type>::VariableType solution;
 
   /// Residual norm.
   double norm_res = 0.0;
