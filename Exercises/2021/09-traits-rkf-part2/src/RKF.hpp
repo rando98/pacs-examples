@@ -47,7 +47,7 @@ public:
   RKF() = default;
 
   /// Constructor.
-  RKF(const ButcherType &table_, const Function &function_)
+  RKF(const Function &function_, const ButcherType& table_ = ButcherType()) // RVO optmization for second parameter
     : table(table_)
     , function(function_)
   {
