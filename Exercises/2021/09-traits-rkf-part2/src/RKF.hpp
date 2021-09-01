@@ -47,8 +47,8 @@ public:
   RKF() = default;
 
   /// Constructor.
-  RKF(const Function &function_, const ButcherType& table_ = ButcherType()) // RVO optmization for second parameter
-    : table(table_)
+  RKF(const Function &function_)
+    : table(ButcherType())
     , function(function_)
   {
     static_assert(is_any_v<ProblemType, RKFType::Scalar, RKFType::Vector>,

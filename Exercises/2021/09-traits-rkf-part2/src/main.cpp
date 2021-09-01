@@ -3,7 +3,13 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
-
+/* NOTE 1
+class CustomRK45_t : public ButcherArray<...>
+{
+public:
+  CustomRK45_t(); // assign coeff
+};
+*/
 int
 main(int argc, char **argv)
 {
@@ -23,14 +29,13 @@ main(int argc, char **argv)
     // The previous version was ugly since I was repeating RKF::RK23_t both in the template argument and in the contructor of solver.
     // Now it is sufficient to provide only the ODE f to solve.
 
-    // However for this version the user can still pass a method (clearly compliling error permettendo)
-    // For example
-    RKFScheme::RK23_t method; // or auto method = RKFScheme::RK23;
-    RKF<RKFScheme::RK23_t, RKFType::Scalar> solver(f, method);
+    // For this version the user cannot pass a method anymore since the constructor accept only one argument.
+    /// RKFScheme::RK23_t method; // or auto method = RKFScheme::RK23;
+    /// RKF<RKFScheme::RK23_t, RKFType::Scalar> solver(f, method); // COMPILER ERROR
 
-    // Or maybe I can modify the method and pass it to the Constructor
-    method.c = {...}
-    RKF<RKFScheme::RK23_t, RKFType::Scalar> solver(f, method);
+    // So what to do if I want to modify a method? I may implement a new class. See NOTE 1 (before the main)
+    RKF<CustomRK45_t, RKFType::Scalar> solver1(f); // without second class
+
 
     // SO ALL THIS IS A WAY TO SOLVE THE POINT 1 OF THE LAB. BUT THERE IS A BETTER VERSION...SEE IN THE NEXT COMMIT
 
