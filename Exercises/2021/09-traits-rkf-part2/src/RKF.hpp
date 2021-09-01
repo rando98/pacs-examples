@@ -3,6 +3,7 @@
 
 #include "ButcherRKF.hpp"
 #include "RKFTraits.hpp"
+#include "GetPot"
 
 #include <iostream>
 #include <limits>
@@ -35,6 +36,58 @@ public:
 template <class T, class... Ts>
 inline constexpr bool is_any_v = (std::disjunction_v<std::is_same<T, Ts>...>);
 
+template<class ProblemType>
+class  RKFOptions
+{
+public:
+  using VariableType = typename RKFTraits<ProblemType>::VariableType;
+
+  RKFOptions() = default;
+
+  void
+  parse_from_file(const std::string& filename, const size_t& lenght = 1)
+  {
+    GetPot datafile(filename.c_str());
+
+    t0 = datafile("t0" , 0.); // the defualt value must be "0." and not 0, because otherwise GetPot will automatically convert the read value to int.
+    tf = datafile("tf" , 0.);
+
+    if constexpr(std::is_same_v<ProblemType, RKFType::Scalar>)
+      y0 = datafile("y0", 1.);
+    else // if constexpr (std::is_same_v<ProblemType, RKFType::Vector)
+    {
+      y0.resize(lenght);
+
+      for(size_t i=0; i<lenght; ++i)
+        y0[i] = datafile("y0", static_cast<int>(i), 0.1);
+    }
+
+
+    h0 = datafile("h0", 0.1);
+
+    tolerance = datafile("tol", 1e-6);
+
+    n_max_steps = datafile("n_max_steps", 1e3);
+
+    factor_reduction = datafile("factor_reduction", 0.95);
+    factor_expansion = datafile("factor_expansion", 2);
+
+  }
+
+  double       t0;
+  double       tf;
+
+  VariableType y0; // Scalar: double y0,  Vector: Eigen::VectorXd y0;
+
+  double       h0;
+
+  double       tolerance;
+  unsigned int n_max_steps = 1e+3;
+
+  double factor_reduction = 0.95;
+  double factor_expansion = 2;
+};
+
 /// Runge-Kutta-Fehlberg solver class.
 template <class ButcherType, class ProblemType>
 class RKF
@@ -47,12 +100,19 @@ public:
   RKF() = default;
 
   /// Constructor.
-  RKF(const Function &function_)
+  RKF(const Function &function_, const RKFOptions<ProblemType>& options_ = RKFOptions<ProblemType>())
     : table(ButcherType())
     , function(function_)
+    , options(options_)
   {
     static_assert(is_any_v<ProblemType, RKFType::Scalar, RKFType::Vector>,
                   "Wrong problem type specified.");
+  }
+
+  void
+  set_options(const RKFOptions<ProblemType>& options_)
+  {
+    options = options_;
   }
 
   /// Set the forcing term.
@@ -71,25 +131,9 @@ public:
 
   /**
    * Solve problem.
-   *
-   * @param[in] t0               Initial time.
-   * @param[in] tf               Final time.
-   * @param[in] y0               Initial condition.
-   * @param[in] h0               Initial time step.
-   * @param[in] tol              Desired tolerance on error.
-   * @param[in] n_max_steps      Safeguard to avoid too many steps.
-   * @param[in] factor_reduction Multiplication factor for time step reduction.
-   * @param[in] factor_expansion Multiplication factor for time step expansion.
    */
   RKFResult<ProblemType>
-  operator()(const double &      t0,
-             const double &      tf,
-             const VariableType &y0,
-             const double &      h0,
-             const double &      tol,
-             const unsigned int  n_max_steps,
-             const double        factor_reduction = 0.95,
-             const double        factor_expansion = 2) const;
+  operator()() const;
 
 private:
   /**
@@ -107,23 +151,17 @@ private:
 
   ButcherType table;
   Function    function;
+  RKFOptions<ProblemType> options;
 };
 
 
 template <class ButcherType, class ProblemType>
 RKFResult<ProblemType>
-RKF<ButcherType, ProblemType>::operator()(const double &      t0,
-                                          const double &      tf,
-                                          const VariableType &y0,
-                                          const double &      h0,
-                                          const double &      tol,
-                                          const unsigned int  n_max_steps,
-                                          const double        factor_reduction,
-                                          const double        factor_expansion
-
-) const
+RKF<ButcherType, ProblemType>::operator()() const
 {
   RKFResult<ProblemType> result;
+
+  const auto&[t0, tf, y0, h0, tol, n_max_steps, factor_reduction, factor_expansion] = options;
 
   auto &[time, y, error_estimate, failed, expansions, reductions] = result;
 

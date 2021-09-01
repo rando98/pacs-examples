@@ -135,6 +135,7 @@ namespace RKFScheme
   };
 
   /// C++17 here!
+  // Global instances of the solver
   inline static const RK45_t RK45{};
 
   inline static const RK23_t RK23{};

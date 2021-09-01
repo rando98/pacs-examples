@@ -13,17 +13,13 @@ main(int argc, char **argv)
     const auto f = [](const double &t, const double &y) { return -10 * y; };
     const auto sol_exact = [](const double &t) { return std::exp(-10 * t); };
 
-    const double       t0          = 0;
-    const double       tf          = 10;
-    const double       y0          = 1;
-    const double       h0          = 0.2;
-    const double       tolerance   = 1e-4;
-    const unsigned int n_max_steps = 1e4;
-
     RKF<RKFScheme::RK23_t, RKFType::Scalar> solver(f);
 
+    RKFOptions<RKFType::Scalar> options; // WE could even pass to the contructor option, declaring before
+    options.parse_from_file("data_ex.pot");
+    solver.set_options(options);
 
-    const auto solution = solver(t0, tf, y0, h0, tolerance, n_max_steps);
+    const auto solution = solver();
 
     // Compute error.
     double       max_error = 0;
@@ -36,7 +32,7 @@ main(int argc, char **argv)
     std::cout << std::boolalpha;
     std::cout << "*** Model problem ***" << std::endl
               << "  l_inf error: " << max_error << std::endl
-              << "  Tolerance: " << tolerance << std::endl
+              << "  Tolerance: " << options.tolerance << std::endl
               << "  Failed: " << solution.failed << std::endl
               << "  Error estimate: " << solution.error_estimate << std::endl;
     std::cout << std::endl;
@@ -58,24 +54,27 @@ main(int argc, char **argv)
       return out;
     };
 
-    const double t0 = 0;
-    const double tf = 40;
+    RKFOptions<RKFType::Vector> options2;
+    // WE can parse from file or even hard-code the parameters!
+    // options2.t0 = 0;
+    // options2.tf = 40;
+    //
+    // options2.y0.resize(2);
+    // options2.y0[0] = 1;
+    // options2.y0[1] = 1;
+    //
+    // options2.h0          = 0.2;
+    // options2.tolerance   = 1e-4;
+    // options2.n_max_steps = 5e3;
 
-    Eigen::VectorXd y0(2);
-    y0[0] = 1;
-    y0[1] = 1;
+    options2.parse_from_file("data_VdP.pot", 2);  
+    RKF<RKFScheme::RK45_t, RKFType::Vector> solver(f, options2);
 
-    const double       h0          = 0.2;
-    const double       tolerance   = 1e-4;
-    const unsigned int n_max_steps = 5e3;
-
-    RKF<RKFScheme::RK45_t, RKFType::Vector> solver(f);
-
-    const auto solution = solver(t0, tf, y0, h0, tolerance, n_max_steps);
+    const auto solution = solver();
 
     std::cout << std::boolalpha;
     std::cout << "*** Van der Pol oscillator ***" << std::endl
-              << "  Tolerance: " << tolerance << std::endl
+              << "  Tolerance: " << options2.tolerance << std::endl
               << "  Failed: " << solution.failed << std::endl
               << "  Error estimate: " << solution.error_estimate << std::endl;
     std::cout << std::endl;
