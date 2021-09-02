@@ -8,6 +8,7 @@
 #include <iostream>
 #include <limits>
 #include <vector>
+#include <memory>
 
 /// Struct holding the results of the RKF solver.
 template <class ProblemType>
@@ -89,7 +90,7 @@ public:
 };
 
 /// Runge-Kutta-Fehlberg solver class.
-template <class ButcherType, class ProblemType>
+template <class ProblemType>
 class RKF
 {
 public:
@@ -100,8 +101,11 @@ public:
   RKF() = default;
 
   /// Constructor.
-  RKF(const Function &function_, const RKFOptions<ProblemType>& options_ = RKFOptions<ProblemType>())
-    : table(ButcherType())
+  RKF(
+    const Function &function_,
+    const std::shared_ptr<ButcherArray>& table_,
+    const RKFOptions<ProblemType>& options_ = RKFOptions<ProblemType>())
+    : table(table_)
     , function(function_)
     , options(options_)
   {
@@ -124,7 +128,7 @@ public:
 
   /// Set the Butcher array.
   void
-  set_table(const ButcherType &table_)
+  set_table(const std::shared_ptr<ButcherArray>& table_)
   {
     table = table_;
   }
@@ -149,15 +153,15 @@ private:
   RKFstep(const double &t, const VariableType &y, const double &h) const
     -> std::pair<VariableType, VariableType>;
 
-  ButcherType table;
+  std::shared_ptr<ButcherArray> table; // shared pointer (for the sake of simplicity do not used unique pointer) to the base class
   Function    function;
   RKFOptions<ProblemType> options;
 };
 
 
-template <class ButcherType, class ProblemType>
+template <class ProblemType>
 RKFResult<ProblemType>
-RKF<ButcherType, ProblemType>::operator()() const
+RKF<ProblemType>::operator()() const
 {
   RKFResult<ProblemType> result;
 
@@ -264,21 +268,21 @@ RKF<ButcherType, ProblemType>::operator()() const
 }
 
 
-template <class ButcherType, class ProblemType>
+template <class ProblemType>
 auto
-RKF<ButcherType, ProblemType>::RKFstep(const double &      t,
+RKF<ProblemType>::RKFstep(const double &      t,
                                        const VariableType &y,
                                        const double &      h) const
   -> std::pair<VariableType, VariableType>
 {
-  constexpr auto n_stages = ButcherType::n_stages();
+  auto n_stages = table->n_stages();
 
-  std::array<VariableType, n_stages> K;
+  std::vector<VariableType> K(n_stages);
 
-  const auto &A  = table.A;
-  const auto &b1 = table.b1;
-  const auto &b2 = table.b2;
-  const auto &c  = table.c;
+  const auto &A  = table->A;
+  const auto &b1 = table->b1;
+  const auto &b2 = table->b2;
+  const auto &c  = table->c;
 
   // The first step is always an Euler step.
   K[0] = function(t, y);

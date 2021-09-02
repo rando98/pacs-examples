@@ -1,7 +1,7 @@
-#ifndef BUTCHERRKF_HPP
+  #ifndef BUTCHERRKF_HPP
 #define BUTCHERRKF_HPP
 
-#include <array>
+#include <vector>
 
 /**
  * The class contains the prototype of a Butcher table for RKF methods.
@@ -10,14 +10,13 @@
  * matrix A and two vectors b1 and b2. Another vector, called c is required but
  * it may be computed as the row sum of A
  *
- * @tpar N_STAGES The total number of stages.
  */
-template <unsigned int N_STAGES>
 class ButcherArray
 {
 public:
+
   /// The actual Butcher table A.
-  using Table_t = std::array<std::array<double, N_STAGES>, N_STAGES>;
+  using Table_t = std::vector<std::vector<double>>;
 
   /**
    * Constructor.
@@ -27,18 +26,20 @@ public:
    * @param b2_    Array b2 (high order).
    * @param order_ Order of the method (the highest one).
    */
-  ButcherArray(const Table_t &                     A_,
-               const std::array<double, N_STAGES> &b1_,
-               const std::array<double, N_STAGES> &b2_,
+  ButcherArray(const unsigned int& stages_,
+               const Table_t &                     A_,
+               const std::vector<double> &b1_,
+               const std::vector<double> &b2_,
                const unsigned int &                order_)
     : A(A_)
     , b1(b1_)
     , b2(b2_)
     , order(order_)
+    , stages(stages_)
   {
-    c.fill(0.0);
+    c.assign(stages, 0.0);
 
-    for (std::size_t i = 1; i < N_STAGES; ++i)
+    for (std::size_t i = 1; i < stages; ++i)
       for (auto const &v : A[i])
         c[i] += v;
   }
@@ -50,13 +51,13 @@ public:
   Table_t A;
 
   /// The b1 coefficient of the Butcher array (lower order).
-  std::array<double, N_STAGES> b1;
+  std::vector<double> b1;
 
   /// The b2 coefficients of the Butcher array (higher order).
-  std::array<double, N_STAGES> b2;
+  std::vector<double> b2;
 
   /// The c coefficient of the butcher array.
-  std::array<double, N_STAGES> c;
+  std::vector<double> c;
 
   /// Order to control time steps.
   unsigned int order;
@@ -69,10 +70,13 @@ public:
    * be call it as ButcherArray<N>::n_stages() without creating an object of
    * type ButcherArray.
    */
-  static constexpr unsigned int
+
+  unsigned int stages;
+
+  unsigned int // not constexpr anymore since stages is not known at compile time anymore
   n_stages()
   {
-    return N_STAGES;
+    return stages;
   }
 };
 
@@ -81,11 +85,11 @@ namespace RKFScheme
   // Some common RK embedded schemes.
 
   /// RK45, the actual RK-Fehlberg scheme.
-  class RK45_t : public ButcherArray<6>
+  class RK45_t : public ButcherArray
   {
   public:
     RK45_t()
-      : ButcherArray<6>{
+      : ButcherArray{6,
           {{{{0., 0., 0., 0., 0., 0.}},
             {{1. / 4, 0., 0., 0., 0., 0.}},
             {{3. / 32, 9. / 32, 0., 0., 0., 0.}},
@@ -105,11 +109,11 @@ namespace RKFScheme
   };
 
   /// RK23, a lower order scheme.
-  class RK23_t : public ButcherArray<4>
+  class RK23_t : public ButcherArray
   {
   public:
     RK23_t()
-      : ButcherArray<4>{{{{{0., 0., 0., 0.}},
+      : ButcherArray{4, {{{{0., 0., 0., 0.}},
                           {{1. / 2, 0., 0., 0.}},
                           {{0., 3. / 4, 0., 0.}},
                           {{2. / 9, 1. / 3, 4. / 9, 0.}}}},
@@ -120,11 +124,12 @@ namespace RKFScheme
   };
 
   /// Heun-Euler scheme, 2nd order.
-  class RK12_t : public ButcherArray<2>
+  class RK12_t : public ButcherArray
   {
   public:
     RK12_t()
-      : ButcherArray<2>{{{
+      : ButcherArray{2,
+                        {{
                           {{0., 0.}},
                           {{1., 0.}},
                         }},
