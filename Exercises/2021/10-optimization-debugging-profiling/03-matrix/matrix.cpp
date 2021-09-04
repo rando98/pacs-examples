@@ -19,10 +19,12 @@ matrix operator*(const matrix &A, const matrix &B)
 {
   matrix result(A.get_rows(), B.get_cols());
 
+  matrix A_t = A.transpose();
+
   for(size_t i=0; i<A.get_rows(); ++i)
     for(size_t j=0; j<B.get_cols(); ++j)
       for(size_t k=0; k<A.get_cols(); ++k)
-        result(i,j) += A(i,k) * B(k,j);
+        result(i,j) += A_t(k,i) * B(k,j); // Now is Cache friendly since A,B are stored column-major. And the code is faster!
 
   return result;
 }
