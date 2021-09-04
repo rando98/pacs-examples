@@ -6,12 +6,25 @@
 matrix
 matrix::transpose() const
 {
-  return matrix(0);
+  matrix result(this->get_rows(), this->get_cols());
+
+  for(size_t i=0; i<result.get_rows(); ++i)
+    for(size_t j=0; j<result.get_cols(); ++j)
+      result(i,j)=(*this)(j,i);
+
+  return result;
 }
 
 matrix operator*(const matrix &A, const matrix &B)
 {
-  return matrix(0);
+  matrix result(A.get_rows(), B.get_cols());
+
+  for(size_t i=0; i<A.get_rows(); ++i)
+    for(size_t j=0; j<B.get_cols(); ++j)
+      for(size_t k=0; k<A.get_cols(); ++k)
+        result(i,j) += A(i,k) * B(k,j);
+
+  return result;
 }
 
 void
