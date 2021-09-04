@@ -3,14 +3,18 @@
 #include <algorithm>
 #include <cassert>
 
+#include <Eigen/Dense>
+
 matrix
 matrix::transpose() const
 {
-  matrix result(this->get_rows(), this->get_cols());
+  matrix result(this->get_cols(), this->get_rows());
 
-  for(size_t i=0; i<result.get_rows(); ++i)
-    for(size_t j=0; j<result.get_cols(); ++j)
-      result(i,j)=(*this)(j,i);
+  Eigen::Map<Eigen::MatrixXd> result_eigen( result.get_data(),
+                                            result.get_rows(),
+                                            result.get_cols());
+
+  result_eigen.transpose();
 
   return result;
 }
@@ -19,12 +23,18 @@ matrix operator*(const matrix &A, const matrix &B)
 {
   matrix result(A.get_rows(), B.get_cols());
 
-  matrix A_t = A.transpose();
+  Eigen::Map<const Eigen::MatrixXd> A_eigen(
+    A.get_data(), A.get_rows(), A.get_cols());
 
-  for(size_t i=0; i<A.get_rows(); ++i)
-    for(size_t j=0; j<B.get_cols(); ++j)
-      for(size_t k=0; k<A.get_cols(); ++k)
-        result(i,j) += A_t(k,i) * B(k,j); // Now is Cache friendly since A,B are stored column-major. And the code is faster!
+  Eigen::Map<const Eigen::MatrixXd> B_eigen(
+    B.get_data(), B.get_rows(), B.get_cols());
+
+  Eigen::Map<Eigen::MatrixXd> result_eigen(
+    result.get_data(), result.get_rows(), result.get_cols());
+
+
+  result_eigen =  A_eigen *B_eigen;
+
 
   return result;
 }
